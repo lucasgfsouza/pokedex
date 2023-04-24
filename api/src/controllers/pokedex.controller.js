@@ -1,46 +1,50 @@
 const pokedexService = require('../services/pokedex.service');
+const { getUserIdFromToken } = require('../auth')
 class pokedexController {
 
 
     async getOnePokemon(req, res, next) {
 
-        const { body: { personalPokemonId } } = req;
-        const { headers: { token } } = req;
+        const { params: { id: personalPokemonId } } = req;
 
         if (!personalPokemonId) {
-            res.status(400)
-            res.send("Obrigatório paramêtro de id próprio da pokedex para buscar um pokemon")
+            res.status(400).send("Obrigatório paramêtro de id próprio da pokedex para buscar um pokemon");
+            return;
         }
 
+        const userId = getUserIdFromToken(req)
+
         try {
-            const result = await pokedexService.getOnePokemon(token, personalPokemonId)
+            const result = await pokedexService.getOnePokemon(userId, personalPokemonId)
+
+            res.json(result);
 
             return result;
+
         } catch (error) {
 
-            res.status(error.code);
-            res.send(error.message);
+            res.status(400).send(error.message);
         }
     }
 
     async editPokemon(req, res, next) {
 
-        const { body: { personalPokemonId, data } } = req;
-
-        const { headers: { token } } = req;
+        const { body: data } = req;
+        const { params: { id: personalPokemonId } } = req;
 
         if (!personalPokemonId) {
             res.status(400)
             res.send("Obrigatório paramêtro de id próprio da pokedex para buscar um pokemon")
         }
 
-        try {
-            const result = await pokedexService.editOnePokemon(token, personalPokemonId, data);
+        const userId = getUserIdFromToken(req)
 
-            return result;
+        try {
+            const result = await pokedexService.editOnePokemon(userId, personalPokemonId, data);
+
+            res.status(200).send(result)
         } catch (error) {
-            res.status(error.code);
-            res.send(error.message);
+            res.status(400).send(error.message)
         }
     }
 
@@ -48,49 +52,62 @@ class pokedexController {
 
         const { body: { oficialPokemonId, oficialPokemonName, data } } = req;
 
-        const { headers: { token } } = req;
-
         if (!oficialPokemonId && oficialPokemonName) {
             res.status(400)
             res.send("Obrigatório paramêtro de id próprio da pokedex para buscar um pokemon")
         }
-        const { result } = await pokedexService.createOnePokemon(token, oficialPokemonId, oficialPokemonName, data)
-        res.status(200)
-        res.json()
-        res.send(result)
+
+        const userId = getUserIdFromToken(req)
+
+        try {
+
+            const result = await pokedexService.createOnePokemon(userId, oficialPokemonId, oficialPokemonName, data)
+            res.status(200).send(result)
+        } catch (error) {
+            res.status(400).send(error.message)
+        }
     }
 
     async deletePokemonFromPokedex(req, res, next) {
-        const { body: { personalPokemonId } } = req;
-        const { headers: { token } } = req;
+        const { params: { id: personalPokemonId } } = req;
 
         if (!personalPokemonId) {
             res.status(400)
             res.send("Obrigatório paramêtro de id próprio da pokedex para buscar um pokemon")
         }
 
-        try {
-            const result = await pokedexService.deleteOnePokemon(token, personalPokemonId)
+        const userId = getUserIdFromToken(req);
 
-            return result;
+        try {
+            const result = await pokedexService.deleteOnePokemon(userId, personalPokemonId)
+
+            res.status(200).send(result);
+
         } catch (error) {
 
-            res.status(error.code);
-            res.send(error.message);
+            res.status(400).send(error.message)
+
         }
     }
 
     async listAllPokemonFromOnePokedex(req, res, next) {
-        const { params: { oficialName, personalName } } = req
+        const userId = getUserIdFromToken(req);
 
-        if (oficialName) {
+        const queryParams = {
+            personalName: req.query.personalName,
+            oficialId: req.query.oficialId,
+            oficialName: req.query.oficialName,
+            limit: req.query.limit || 20,
+            page: req.query.page || 1,
+        };
+
+        try {
+            const result = await pokedexService.getAllPokemons(userId, queryParams);
+            res.status(200).json(result);
+
+        } catch (error) {
+            res.status(400).send(error.message);
         }
-
-        res.json({ ok: 'ok' })
-    }
-
-    async evolvePokemon(req, res, next) {
-        res.json({ ok: 'ok' })
     }
 }
 

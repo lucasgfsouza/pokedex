@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const pokedexRouter = require('./api/src/routers/pokedex.router');
+const pokedexRouter = require('./api/src/routers/router');
 
 const app = express();
 const PORT = process.env.PORT || 3000;

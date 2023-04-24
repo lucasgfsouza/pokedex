@@ -1,6 +1,8 @@
-from node:16
+from node:14
 
-WORKDIR /ex2
+RUN apt-get update && apt-get install -y \
+  build-essential \
+  python3
 
 COPY package*.json ./
 

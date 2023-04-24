@@ -13,6 +13,8 @@ services:
       - DB_PASSWORD=clearsale
       - DB_DATABASE_NAME=clearsale
       - DB_PORT=5432
+    volumes:
+      - .:/pokedex
 
   db:
     image: postgres
